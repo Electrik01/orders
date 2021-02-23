@@ -31,12 +31,17 @@ def insturments_generator(pseudo_randomized_numbers):
         insturments_values.extend(copy_element(i,INSTRUMENTS[instrument_num]))
     return insturments_values
 
+
+def get_px_init_value(prn):
+    px_init_num = prn//DIVISIOR_PX_INIT % COUNT_INSTRUMENT
+    px_init_change = prn//DIVISIOR_PX_INIT_CHANGE % 100 * PX_INIT[px_init_num][1] #or 100
+    px_init_value = round(PX_INIT[px_init_num][0]+px_init_change,5)
+    return px_init_value
+
 def px_init_generator(pseudo_randomized_numbers):
     px_init_values = []
     for i in range(COUNT_ORDERS):
-        px_init_num = pseudo_randomized_numbers[i]//DIVISIOR_PX_INIT % COUNT_INSTRUMENT
-        px_init_change = pseudo_randomized_numbers[i]//DIVISIOR_PX_INIT_CHANGE % 100 * PX_INIT[px_init_num][1] #or 100
-        px_init_value = round(PX_INIT[px_init_num][0]+px_init_change,5)
+        px_init_value = get_px_init_value(pseudo_randomized_numbers[i])
         px_init_values.extend(copy_element(i,px_init_value))
     return px_init_values
 
@@ -69,19 +74,23 @@ def status_generator(pseudo_randomized_numbers):
             status_values.extend([STATUS[0],STATUS[1],STATUS[2][status_num],STATUS[3]])
     return status_values
 
+def get_px_fill_value_dependency_status(status_num,prn):
+    px_init_num = prn//DIVISIOR_PX_INIT % COUNT_INSTRUMENT
+    px_init_value = get_px_init_value(prn)
+    px_fill_change = prn//DIVISIOR_PX_FILL%50 * PX_INIT[px_init_num][1]
+    px_fill_value = [
+        px_init_value,
+        round(px_init_value - px_fill_change,5),
+        0
+    ]
+    return px_fill_value[status_num]
+
+
 def px_fill_generator(pseudo_randomized_numbers):
     px_fill_values = []
     for i in range(COUNT_ORDERS):
-        px_init_num = pseudo_randomized_numbers[i]//DIVISIOR_PX_INIT % COUNT_INSTRUMENT
-        px_init_change = pseudo_randomized_numbers[i]//DIVISIOR_PX_INIT_CHANGE % 100 * PX_INIT[px_init_num][1] 
         status_num = pseudo_randomized_numbers[i]//DIVISIOR_STATUS%3
-        if status_num == 2:
-            px_fill_value=0
-        elif status_num == 1:
-            px_fill_change = pseudo_randomized_numbers[i]//DIVISIOR_PX_FILL%50 * PX_INIT[px_init_num][1]
-            px_fill_value=round(PX_INIT[px_init_num][0]+px_init_change - px_fill_change,5)
-        else:
-            px_fill_value=round(PX_INIT[px_init_num][0]+px_init_change,5)
+        px_fill_value = get_px_fill_value_dependency_status(status_num,pseudo_randomized_numbers[i])
         if i < ORDER_CREATED_BEFORE_START:
             px_fill_values.extend([0,px_fill_value,px_fill_value])
         elif i < ORDER_CREATED_BEFORE_START+ORDER_DONE_AFTER_FINISH:
@@ -90,18 +99,24 @@ def px_fill_generator(pseudo_randomized_numbers):
             px_fill_values.extend([0,0,px_fill_value,px_fill_value])
     return px_fill_values
 
+
+def get_volume_fill_value_dependency_status(status_num,volume_init_value,prn):
+    volume_fill_value = [
+        int(volume_init_value),
+        int(volume_init_value - prn%100*1000),
+        0
+    ]
+    return volume_fill_value[status_num]
+
 def volume_fill_generator(pseudo_randomized_numbers):
     volume_fill_values = []
     for i in range(COUNT_ORDERS):
         volume_init_multiplier = math.pow(10,pseudo_randomized_numbers[i]%3+3)
         volume_init_value = int(pseudo_randomized_numbers[i]//DIVISIOR_VOLUME_INIT) * volume_init_multiplier
         status_num = pseudo_randomized_numbers[i]//DIVISIOR_STATUS%3
-        if status_num == 2:
-            volume_fill_value=0
-        elif status_num == 1:
-            volume_fill_value = int(volume_init_value - pseudo_randomized_numbers[i]%100*1000)
-        else:
-            volume_fill_value=int(volume_init_value)
+        volume_fill_value = get_volume_fill_value_dependency_status(
+            status_num,volume_init_value,pseudo_randomized_numbers[i]
+            )
         if i < ORDER_CREATED_BEFORE_START:
             volume_fill_values.extend([0,volume_fill_value,volume_fill_value])
         elif i < ORDER_CREATED_BEFORE_START+ORDER_DONE_AFTER_FINISH:
@@ -117,39 +132,47 @@ def note_generator(pseudo_randomized_numbers):
         note_values.extend(copy_element(i,NOTE[note_num]))
     return note_values
 
-def date_generator(pseudo_randomized_numbers):
-    date_values = []
-    for i in range(COUNT_ORDERS):
-        num = pseudo_randomized_numbers[i]//DIVISIOR
-        hour = num%23
-        minute = num%60
-        second = num//10%60
-        msec = [
+def get_time_parameters(prn,num):
+    first_time = {
+        'hour': num%23,
+        'minute': num%60,
+        'second': num//10%60,
+        'msec': [
             num%1000,
             math.ceil(num*1.1)%1000,
             math.ceil(num*1.2)%1000,
             math.ceil(num*1.3)%1000
         ]    
-        first_date = datetime(YEAR,MONTH,DAY,hour,minute,second,0)
-        if i<ORDER_CREATED_BEFORE_START+ORDER_DONE_AFTER_FINISH:
-            date_values.extend([
-                (first_date + timedelta(milliseconds = msec[0])).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
-                (first_date + timedelta(milliseconds = int(num % 10)*1000 + msec[1])).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
-                (first_date + timedelta(milliseconds = int(num % 10 + 1)*1000 + msec[2])).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-            ])
-        else:
-            date_values.extend([
-                datetime(YEAR,MONTH,DAY,hour,minute,second,msec[0]).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
-                (first_date + timedelta(milliseconds = int(num % 10)*1000 + msec[1])).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
-                (first_date + timedelta(milliseconds = math.ceil(num % 10 + 1)*1000 + msec[2])).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
-                (first_date + timedelta(milliseconds = int(num % 10 + 2)*1000 + msec[3])).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-            ])
-        if i<1:
-            print(date_values)
+    } 
+    return first_time 
+
+def get_date_value_line(iter,time_parameters,first_date,num):
+    date_value = [
+        first_date.strftime(DATE_FORMAT)[:-3],
+        (first_date + timedelta(milliseconds = int(num % 10)*1000 + time_parameters['msec'][1])).strftime(DATE_FORMAT)[:-3],
+        (first_date + timedelta(milliseconds = math.ceil(num % 10 + 1)*1000 + time_parameters['msec'][2])).strftime(DATE_FORMAT)[:-3],                
+        (first_date + timedelta(milliseconds = int(num % 10 + 2)*1000 + time_parameters['msec'][3])).strftime(DATE_FORMAT)[:-3]
+    ]
+    if iter<ORDER_CREATED_BEFORE_START+ORDER_DONE_AFTER_FINISH:
+        return date_value[:-1]
+    else:
+        return date_value
+
+def date_generator(pseudo_randomized_numbers):
+    date_values = []
+    for i in range(COUNT_ORDERS):
+        num = pseudo_randomized_numbers[i]//DIVISIOR
+        time_parameters = get_time_parameters(pseudo_randomized_numbers[i],num)
+        first_date = datetime(YEAR,MONTH,DAY,time_parameters['hour'],
+                                             time_parameters['minute'],
+                                             time_parameters['second'],
+                                             time_parameters['msec'][0]*1000)
+        date_values.extend(get_date_value_line(i,time_parameters,first_date,num))
     return date_values
 
 
-def order_generator(pseudo_randomized_numbers):
+def order_generator():
+    pseudo_randomized_numbers = pseudo_generator()
     id = id_generator(pseudo_randomized_numbers)
     instrument = insturments_generator(pseudo_randomized_numbers)
     px_init = px_init_generator(pseudo_randomized_numbers)
@@ -177,13 +200,34 @@ def order_generator(pseudo_randomized_numbers):
                         ])
     return orders_list
 
-def print_list(list_):
-    f = open('text.txt', 'w')
+def orders_to_mysql_format(orders_list):
+    orders_mysql = []
+    for i in range(COUNT_RECORDS):
+        orders_mysql.append(
+            DATE_FORMAT_FOR_MYSQL.format(   
+                id=orders_list[i][0],
+                instrument=orders_list[i][1],
+                px_init=orders_list[i][2],
+                px_fill=orders_list[i][3],
+                side=orders_list[i][4],
+                volume_init=orders_list[i][5],
+                volume_fill=orders_list[i][6],
+                status=orders_list[i][7],
+                date=orders_list[i][8],
+                note=orders_list[i][9]
+                )
+        )
+    return orders_mysql
+
+
+def write_to_file(list_):
+    f = open('orders.txt', 'w')
     for i in range(COUNT_RECORDS):
         f.write(str(list_[i])+'\n')
 
 def main():
-    prn = pseudo_generator()
-    print_list(order_generator(prn))
+    orders = order_generator()
+    write_to_file(orders_to_mysql_format(orders))
 
-main()
+if __name__ == "__main__":
+    main()

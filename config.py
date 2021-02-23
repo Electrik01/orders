@@ -81,5 +81,7 @@ NOTE = [
 YEAR = 2021
 MONTH = 2
 DAY = 2
-
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 MILLISECONDS = 1000000
+
+DATE_FORMAT_FOR_MYSQL = "INSERT INTO 'task'.'order' VALUES ('{id}','{instrument}','{px_init}','{px_fill}','{side}','{volume_init}','{volume_fill}','{status}','{date}','{note}')"
