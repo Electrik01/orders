@@ -4,6 +4,7 @@ def IRepository(ABC):
     @abstractmethod
     def Add(self, items):
         pass
+    @abstractmethod
     def Get(self):
         pass
 
