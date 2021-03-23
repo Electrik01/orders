@@ -1,6 +1,7 @@
 import math
 from datetime import *
 from config import *
+import MySQLdb
 
 def pseudo_generator():
     pseudo_randomized_numbers = []
@@ -183,7 +184,6 @@ def order_generator():
     status = status_generator(pseudo_randomized_numbers)
     date = date_generator(pseudo_randomized_numbers)
     note = note_generator(pseudo_randomized_numbers)
-    #tag
     orders_list = []
     for i in range(COUNT_RECORDS):
         orders_list.append( [id[i],
@@ -196,7 +196,6 @@ def order_generator():
                             status[i],
                             date[i],
                             note[i]
-                            #tag[i]
                         ])
     return orders_list
 
@@ -225,9 +224,18 @@ def write_to_file(list_):
     for i in range(COUNT_RECORDS):
         f.write(str(list_[i])+'\n')
 
+def write_to_mysql(list_):
+    db = MySQLdb.connect(host="localhost", user="vladp", passwd="1234")
+    cursor = db.cursor()
+    for iter in range(COUNT_RECORDS):
+        cursor.execute(list_[i])
+    db.commit()
+    db.close()
+
 def main():
     orders = order_generator()
-    write_to_file(orders_to_mysql_format(orders))
+    write_to_mysql(orders_to_mysql_format(orders))
+    
 
 if __name__ == "__main__":
     main()
