@@ -1,6 +1,6 @@
 from abc import ABC,abstractmethod
 
-def IRepository(ABC):
+class IRepository(ABC):
     @abstractmethod
     def Add(self, items):
         pass
@@ -8,17 +8,17 @@ def IRepository(ABC):
     def Get(self):
         pass
 
-def IGenerator(ABC):
+class IGenerator(ABC):
     @abstractmethod
     def generate(self):
         pass
 
-def IRecordListFactory(ABC):
+class IRecordListFactory(ABC):
     @abstractmethod
     def create(self):
         pass
 
-def IRecordBuilder(ABC):
+class IRecordBuilder(ABC):
     @abstractmethod
     def set_id(self):
         pass
@@ -46,9 +46,9 @@ def IRecordBuilder(ABC):
     @abstractmethod
     def set_note(self):
         pass
-    @abstractmethod
-    def set_tags(self):
-        pass
+    #@abstractmethod
+    #def set_tags(self):
+    #    pass
     @abstractmethod
     def get(self):
         pass
