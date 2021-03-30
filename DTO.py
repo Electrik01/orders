@@ -12,3 +12,4 @@ class RecordDTO():
     date: str 
     note: str 
     tags: str 
+

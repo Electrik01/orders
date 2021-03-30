@@ -4,7 +4,7 @@ from config import *
 from Interfaces import IRecordBuilder,IRecordListFactory
 from Generators import *
 from DTO import RecordDTO
-
+from DataAccess import *
 
 class RecordBuilder(IRecordBuilder):
     def __init__(self):
@@ -83,6 +83,8 @@ class RecordListFactory(IRecordListFactory):
 def main():
     factory = RecordListFactory()
     records_list = factory.create()
+    rep = OrderRepository("orders.txt")
+    rep.Add(records_list)
     
 
 if __name__ == "__main__":
