@@ -1,4 +1,4 @@
-from config import *
+from constant import *
 import math
 from datetime import *
 
@@ -32,12 +32,23 @@ class TimeParametersQuery():
         } 
         return first_time 
 
+class TagsList():
+    @staticmethod
+    def invoke(prn):
+        tags = []
+        for iter in range(TAGS_COUNT):
+            num = prn//DIVIDER_TAG*pow(10,iter)
+            if num % (iter+3) == 0:
+                tags.append(TAG[iter])
+        return tags
+        
+
 class PxFillValueDependencyStatusQuery():
     @staticmethod
     def invoke(status_num,prn):
-        px_init_num = prn//DIVISIOR_PX_INIT % COUNT_INSTRUMENT
+        px_init_num = prn//DIVIDER_PX_INIT % COUNT_INSTRUMENT
         px_init_value = PxInitValueQuery.invoke(prn)
-        px_fill_change = prn//DIVISIOR_PX_FILL%50 * PX_INIT[px_init_num][1]
+        px_fill_change = prn//DIVIDER_PX_FILL%50 * PX_INIT[px_init_num][1]
         px_fill_value = [
             px_init_value,
             round(px_init_value - px_fill_change,5),
@@ -48,8 +59,8 @@ class PxFillValueDependencyStatusQuery():
 class PxInitValueQuery():
     @staticmethod
     def invoke(prn):
-        px_init_num = prn//DIVISIOR_PX_INIT % COUNT_INSTRUMENT
-        px_init_change = prn//DIVISIOR_PX_INIT_CHANGE % 100 * PX_INIT[px_init_num][1] 
+        px_init_num = prn//DIVIDER_PX_INIT % COUNT_INSTRUMENT
+        px_init_change = prn//DIVIDER_PX_INIT_CHANGE % 100 * PX_INIT[px_init_num][1] 
         px_init_value = round(PX_INIT[px_init_num][0]+px_init_change,5)
         return px_init_value
         

@@ -1,14 +1,27 @@
-from config import *
+from constant import *
 from DTO import *
 import time
 class OrderRepository():
-    def __init__(self, connectionString):
-        self.connectionString = connectionString
+    def __init__(self, connectionDict):
+        self.db = mysql.connector.connect(
+            host=connectionDict["host"],
+            user=connectionDict["user"],
+            password=connectionDict["password"]
+        )
 
     def Add(self,_list):
-        f = open(self.connectionString, 'w')
+        cursor = self.db.cursor()
+        cursor.execute("USE task.order;")
+        for iter in range(len(_list)):
+            cursor.execute(Map.RecordToSql(_list[iter]))
+            self.db.commit()
+
+    def AddToFile(self,_list,file_name):
+        f = open(file_name, 'w')
         for i in range(len(_list)):
             f.write(Map.RecordToSql(_list[i])+'\n')
+
+        
 
 class Map():
     @staticmethod
@@ -23,6 +36,7 @@ class Map():
                 volume_fill=item.volume_fill,
                 status=item.status,
                 date=item.date,
+                tags=item.tags,
                 note=item.note
                 )
     @staticmethod
@@ -38,6 +52,7 @@ class Map():
             record.volume_init = item.volume_init
             record.volume_fill = item.volume_fill[iter]
             record.note = item.note
+            record.tags = item.tags
             record.status = item.status[iter]
             record.date = item.date[iter]
             records.append(record)

@@ -1,11 +1,11 @@
 import math
 from datetime import *
-from config import *
+from constant import *
 from Interfaces import *
 from Generators import *
 from DTO import OrderDTO
 from DataAccess import *
-
+from config import Config
 class OrderBuilder(IOrderBuilder):
     def __init__(self):
         self.id_generator = IdGenerator()
@@ -17,6 +17,7 @@ class OrderBuilder(IOrderBuilder):
         self.volume_fill_generator = VolumeFillGenerator()
         self.date_generator = DateGenerator()
         self.note_generator = NoteGenerator()
+        self.tag_generator = TagGenerator()
         self.status_generator = StatusGenerator()
         self.orderDTO = OrderDTO()
 
@@ -36,6 +37,8 @@ class OrderBuilder(IOrderBuilder):
         self.orderDTO.volume_fill = self.volume_fill_generator.generate()
     def set_date(self):
         self.orderDTO.date = self.date_generator.generate()
+    def set_tags(self):
+        self.orderDTO.tags = self.tag_generator.generate()
     def set_note(self):
         self.orderDTO.note = self.note_generator.generate()
     def set_status(self):
@@ -57,23 +60,24 @@ class OrderFactory(IOrderFactory):
         self.builder.set_px_fill()
         self.builder.set_volume_init()
         self.builder.set_side()
-        self.builder.set_volume_init()
         self.builder.set_volume_fill()
         self.builder.set_status()
         self.builder.set_note()
         self.builder.set_date()
+        self.builder.set_tags()
         return self.builder.get()
 
 
 
 
 def main():
+    config = Config.get()
     records = []
     factory = OrderFactory()
-    for iter in range(COUNT_ORDERS):
+    for iter in range(config["GENERATOR"]["count_orders"]):
         records.extend(Map.OrderToRecord(factory.create()))
-    rep = OrderRepository("orders.txt")
-    rep.Add(records)
+    rep = OrderRepository(config["MySQL"])
+    rep.AddToFile(records,config["PATH"]["path_to_file"])
     
 
 if __name__ == "__main__":

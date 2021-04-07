@@ -46,9 +46,9 @@ class IOrderBuilder(ABC):
     @abstractmethod
     def set_note(self):
         pass
-    #@abstractmethod
-    #def set_tags(self):
-    #    pass
+    @abstractmethod
+    def set_tags(self):
+        pass
     @abstractmethod
     def get(self):
         pass
