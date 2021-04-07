@@ -1,68 +1,55 @@
 import math
 from datetime import *
 from config import *
-from Interfaces import IRecordBuilder,IRecordListFactory
+from Interfaces import *
 from Generators import *
-from DTO import RecordDTO
+from DTO import OrderDTO
 from DataAccess import *
 
-class RecordBuilder(IRecordBuilder):
+class OrderBuilder(IOrderBuilder):
     def __init__(self):
-        self.list_values = {}
+        self.id_generator = IdGenerator()
+        self.instrument_generator = InstrumentGenerator()
+        self.px_init_generator = PxInitGenerator()
+        self.px_fill_generator = PxFillGenerator()
+        self.side_generator = SideGenerator()
+        self.volume_init_generator = VolumeInitGenerator()
+        self.volume_fill_generator = VolumeFillGenerator()
+        self.date_generator = DateGenerator()
+        self.note_generator = NoteGenerator()
+        self.status_generator = StatusGenerator()
+        self.orderDTO = OrderDTO()
 
     def set_id(self):
-        id_generator = IdGenerator()
-        self.list_values["Id"] = id_generator.generate()
+        self.orderDTO.id = self.id_generator.generate()
     def set_instrument(self):
-        insturment_generator = InstrumentGenerator()
-        self.list_values["Instrument"] = insturment_generator.generate()
+        self.orderDTO.instrument = self.instrument_generator.generate()
     def set_px_init(self):
-        px_init_generator = PxInitGenerator()
-        self.list_values["PxInit"] = px_init_generator.generate()
+        self.orderDTO.px_init = self.px_init_generator.generate()
     def set_px_fill(self):
-        px_fill_generator = PxFillGenerator()
-        self.list_values["PxFill"] = px_fill_generator.generate()
+        self.orderDTO.px_fill = self.px_fill_generator.generate()
     def set_side(self):
-        side_generator = SideGenerator()
-        self.list_values["Side"] = side_generator.generate()
+        self.orderDTO.side = self.side_generator.generate()
     def set_volume_init(self):
-        volume_init_generator = VolumeInitGenerator()
-        self.list_values["VolumeInit"] = volume_init_generator.generate()
+        self.orderDTO.volume_init = self.volume_init_generator.generate()
     def set_volume_fill(self):
-        volume_fill_generator = VolumeFillGenerator()
-        self.list_values["VolumeFill"] = volume_fill_generator.generate()
+        self.orderDTO.volume_fill = self.volume_fill_generator.generate()
     def set_date(self):
-        date_generator = DateGenerator()
-        self.list_values["Date"] = date_generator.generate()
+        self.orderDTO.date = self.date_generator.generate()
     def set_note(self):
-        note_generator = NoteGenerator()
-        self.list_values["Note"] = note_generator.generate()
+        self.orderDTO.note = self.note_generator.generate()
     def set_status(self):
-        status_generator = StatusGenerator()
-        self.list_values["Status"] = status_generator.generate()
+        self.orderDTO.status = self.status_generator.generate()
     
     
     def get(self):
-        records_list = []
-        for iter in range(COUNT_RECORDS):
-            item = RecordDTO()
-            item.id = self.list_values["Id"][iter]
-            item.instrument = self.list_values["Instrument"][iter]
-            item.px_init = self.list_values["PxInit"][iter]
-            item.volume_init = self.list_values["VolumeInit"][iter]
-            item.side = self.list_values["Side"][iter]
-            item.px_fill = self.list_values["PxFill"][iter] 
-            item.volume_fill = self.list_values["VolumeFill"][iter] 
-            item.status = self.list_values["Status"][iter]
-            item.date = self.list_values["Date"][iter]
-            item.note = self.list_values["Note"][iter]
-            records_list.append(item)
-        return records_list
+        return self.orderDTO
 
 
-class RecordListFactory(IRecordListFactory):
+class OrderFactory(IOrderFactory):
     def __init__(self):
-        self.builder = RecordBuilder()
+        self.builder = OrderBuilder()
+        
     def create(self):
         self.builder.set_id()
         self.builder.set_instrument()
@@ -81,10 +68,12 @@ class RecordListFactory(IRecordListFactory):
 
 
 def main():
-    factory = RecordListFactory()
-    records_list = factory.create()
+    records = []
+    factory = OrderFactory()
+    for iter in range(COUNT_ORDERS):
+        records.extend(Map.OrderToRecord(factory.create()))
     rep = OrderRepository("orders.txt")
-    rep.Add(records_list)
+    rep.Add(records)
     
 
 if __name__ == "__main__":

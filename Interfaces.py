@@ -13,12 +13,12 @@ class IGenerator(ABC):
     def generate(self):
         pass
 
-class IRecordListFactory(ABC):
+class IOrderFactory(ABC):
     @abstractmethod
     def create(self):
         pass
 
-class IRecordBuilder(ABC):
+class IOrderBuilder(ABC):
     @abstractmethod
     def set_id(self):
         pass
